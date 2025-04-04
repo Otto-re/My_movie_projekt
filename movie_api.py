@@ -1,8 +1,14 @@
 import requests
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
 
 def fetch_movie_data_from_api(title):
-    api_key = '27eb4cc7'  # Dein API-Schlüssel
+    api_key = os.getenv("OMDB_API_KEY")  # Dein API-Schlüssel
+    if not api_key:
+        print("API key not found!")
+        return None
     url = f"http://www.omdbapi.com/?t={title}&apikey={api_key}"
 
     try:
