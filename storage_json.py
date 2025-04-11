@@ -4,18 +4,22 @@ from istorage import IStorage
 class StorageJson(IStorage):
     def __init__(self, file_name):
         self._file_name = file_name
-        self._load_movies()
+        self.movies = self._load_movies()
 
     def _load_movies(self):
         try:
-            with open(self._file_name, 'r') as file:
-                self.movies = json.load(file)
-        except (FileNotFoundError, json.JSONDecodeError):
-            self.movies = {}
+            with open(self._file_name, 'r', encoding='utf-8') as file:
+                return json.load(file)
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            print(f"Fehler beim Laden der Datei: {e}")
+            return {}
 
     def _save_movies(self):
-        with open(self._file_name, 'w') as file:
-            json.dump(self.movies, file, indent=4)
+        try:
+            with open(self._file_name, 'w', encoding='utf-8') as file:
+                json.dump(self.movies, file, indent=4)
+        except IOError as e:
+            print(f"Fehler beim Speichern der Datei: {e}")
 
     def list_movies(self):
         return self.movies
@@ -34,7 +38,7 @@ class StorageJson(IStorage):
             self.movies[title]["rating"] = rating
             self._save_movies()
 
-    def generate_website(self, template_path="_static/index_template.html", output_path="index.html"):
+    def generate_website(self, template_path="_static/index_template.html", output_path="index_template.html"):
         try:
             with open(template_path, "r", encoding="utf-8") as file:
                 template = file.read()
@@ -50,7 +54,7 @@ class StorageJson(IStorage):
                 </div>
                 """
 
-            template = template.replace("__TEMPLATE_TITLE__", "Meine Filmseite")
+
             template = template.replace("__TEMPLATE_MOVIE_GRID__", movie_grid)
 
             with open(output_path, "w", encoding="utf-8") as file:
@@ -60,3 +64,5 @@ class StorageJson(IStorage):
 
         except FileNotFoundError:
             print("Fehler: Template-Datei nicht gefunden.")
+        except IOError as e:
+            print(f"Fehler beim Generieren der Website: {e}")

@@ -1,5 +1,3 @@
-from fileinput import filename
-
 import csv
 from istorage import IStorage
 
@@ -10,17 +8,17 @@ class StorageCsv(IStorage):
 
     def _load_movies(self):
         """
-        lädt die filme aus der csv datei in ein dictionary
+        Lädt die Filme aus der CSV-Datei in ein Dictionary.
         """
         movies = {}
         try:
             with open(self._file_name, mode='r', newline='', encoding='utf-8') as file:
                 reader = csv.DictReader(file)
                 for row in reader:
-                    movies[row["titel"]] = {
-                        "year": int (row["year"]),
+                    movies[row["title"]] = {
+                        "year": int(row["year"]),
                         "rating": float(row["rating"]),
-                        "poster": row ["poster"]
+                        "poster": row["poster"]
                     }
         except FileNotFoundError:
             pass
@@ -30,19 +28,6 @@ class StorageCsv(IStorage):
         """
         Speichert das Dictionary mit den Filmen in der CSV-Datei.
         """
-        with open(self._file_name, mode='w', newline='', encoding='utf-8') as file:
-            fieldnames = ["title", "year", "rating", "poster"]
-            writer = csv.DictWriter(file, fieldnames=fieldnames)
-            writer.writeheader()
-            for title, data in self.movies.items():
-                writer.writerow(
-                    {"title": title, "year": data["year"], "rating": data["rating"], "poster": data["poster"]}
-                )
-
-    def list_movies(self):
-        """
-                Speichert das Dictionary mit den Filmen in der CSV-Datei.
-                """
         with open(self._file_name, mode='w', newline='', encoding='utf-8') as file:
             fieldnames = ["title", "year", "rating", "poster"]
             writer = csv.DictWriter(file, fieldnames=fieldnames)
@@ -80,3 +65,30 @@ class StorageCsv(IStorage):
         if title in self.movies:
             self.movies[title]["rating"] = rating
             self._save_movies()
+
+    def generate_website(self, template_path="_static/index_template.html", output_path="index_template.html"):
+        try:
+            with open(template_path, "r", encoding="utf-8") as file:
+                template = file.read()
+
+            movie_grid = ""
+            for title, data in self.movies.items():
+                movie_grid += f"""
+                <div class="movie">
+                    <h2>{title}</h2>
+                    <p>Year: {data['year']}</p>
+                    <p>Rating: {data['rating']}</p>
+                    <img src="{data['poster']}" alt="{title} poster">
+                </div>
+                """
+
+            template = template.replace("__TEMPLATE_TITLE__", "Meine Filmseite")
+            template = template.replace("__TEMPLATE_MOVIE_GRID__", movie_grid)
+
+            with open(output_path, "w", encoding="utf-8") as file:
+                file.write(template)
+
+            print("Website wurde erfolgreich generiert.")
+
+        except FileNotFoundError:
+            print("Fehler: Template-Datei nicht gefunden.")
